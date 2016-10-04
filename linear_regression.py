@@ -45,14 +45,19 @@ def ridge_reg(data):
     fold_cases = [2, 5, 10, x_train.shape[0]]
     fold = 2
     
-    np.random.shuffle(x_train, fold)
+    #np.random.shuffle(x_train)
     fold_size = int(x_train.shape[0]/fold)
-    x_train_test, x_train_train = x_train[:fold_size,:], x_train[fold_size:,:]
+    x_train_holdout, x_train_train = x_train[:fold_size,:], x_train[fold_size:,:]
+    y_train_holdout = y_train[:fold_size,:]
     
-    #for lam in np.arange(0.001, 1000):
-    #for lam in [10 ** i for i in range(-3, 4)]:
-        
-    lam = 0.01
+    #for lam in np.arange(0.1, 10, 0.05):
+    for lam in [10 ** i for i in range(-3, 4)]:
+        print lam
+        pseudo_inv = np.linalg.inv(np.dot(np.transpose(x_train_train), x_train_train) + lam * np.identity(x_train_train.shape[1]))
+        pseduo_inv = np.dot(pseudo_inv, np.transpose(x_train_train))
+        w = np.dot(pseduo_inv, x_train_train)
+        holdout_err = np.mean((np.dot(x_train_holdout, w) - y_train_holdout) ** 2)
+        print holdout_err
     
         
 
@@ -72,6 +77,9 @@ if __name__ == '__main__':
 #     print X
     
     #linear_reg(data)
-    #ridge_reg(data)
-    print range(-3, 3)
+    ridge_reg(data)
+    print [10 ** i for i in range(-3, 4)]
+    #print np.arange(0.1, 10, 0.05)
+
+
     

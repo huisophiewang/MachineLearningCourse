@@ -121,4 +121,4 @@ if __name__ == "__main__":
     #print y_train.shape
     data = np.concatenate((x_train, y_train), axis=1)
 
-    cross_validation(data, degree=5, fold=2)
+    cross_validation(data, degree=2, fold=10)

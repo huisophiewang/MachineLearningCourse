@@ -1,6 +1,7 @@
 from sklearn import linear_model
 import scipy.io
 import numpy as np
+from pprint import pprint
 
 def poly_basis_trans(X, degree):
     num_col = X.shape[1]
@@ -33,91 +34,100 @@ def cov(a, b):
 
     return sum/(len(a)-1)
 
-def ridge(x_tt, y_tt, x_hd, y_hd):
-    for lam in [10 ** j for j in range(-5, 6)]:
-    #for lam in [1]:
-        print "lambda is %f" % lam
-        #clf = linear_model.Ridge(alpha=alpha, fit_intercept=False)
-        clf = linear_model.Ridge(alpha=lam)
-    
-        clf.fit(x_tt, y_tt)
-        print('Coefficients: \n', clf.coef_)
-        print clf.intercept_
-        #print clf.predict(x_hd)
-        mse = np.mean((clf.predict(x_hd) - y_hd) ** 2)
+def ridge(x_tt, y_tt, x_hd, y_hd, lam):
+    #clf = linear_model.Ridge(alpha=alpha, fit_intercept=False)
+    clf = linear_model.Ridge(alpha=lam)
 
-        print("Mean squared error: %f" % mse)
+    clf.fit(x_tt, y_tt)
+    print('Coefficients: \n', clf.coef_)
+    print clf.intercept_
+    #print clf.predict(x_hd)
+    mse = np.mean((clf.predict(x_hd) - y_hd) ** 2)
+
+    print("Mean squared error: %f" % mse)
         
-def ridge_normalize(x_tt, y_tt, x_hd, y_hd):
+def ridge_normalize(x_tt, y_tt, x_hd, y_hd, lam):
     #normalize x, center y
     x_tt_norm, means, stds = normalize_col(x_tt[:,1:])
     y_tt_center = y_tt - np.mean(y_tt)
-    for lam in [10 ** j for j in range(-5, 6)]:
-    #for lam in [1]:
-        print "lambda is %f" % lam
-        #clf = linear_model.Ridge(alpha=alpha, fit_intercept=False)
-        clf = linear_model.Ridge(alpha=lam, fit_intercept=False)
-    
-        clf.fit(x_tt_norm, y_tt_center)
-        print('Coefficients: \n', clf.coef_)
-        print clf.intercept_
-        x_hd_norm = np.zeros(x_hd.shape)
-        x_hd_norm[:,1]=(x_hd[:,1]-means[0])/stds[0]
-        x_hd_norm[:,2]=(x_hd[:,2]-means[1])/stds[1]
-        #print x_hd_norm
 
-        y_predict = clf.predict(x_hd_norm[:,1:]) + np.mean(y_tt)
-        #print y_predict
-        mse = np.mean((y_predict - y_hd) ** 2)
-        print("Mean squared error: %f" % mse)
-def ridge_test(x_tt, y_tt, x_hd, y_hd):
+    #clf = linear_model.Ridge(alpha=alpha, fit_intercept=False)
+    clf = linear_model.Ridge(alpha=lam, fit_intercept=False)
+
+    clf.fit(x_tt_norm, y_tt_center)
+    print('Coefficients: \n', clf.coef_)
+    print clf.intercept_
+    x_hd_norm = np.zeros(x_hd.shape)
+    x_hd_norm[:,1]=(x_hd[:,1]-means[0])/stds[0]
+    x_hd_norm[:,2]=(x_hd[:,2]-means[1])/stds[1]
+    #print x_hd_norm
+
+    y_predict = clf.predict(x_hd_norm[:,1:]) + np.mean(y_tt)
+    #print y_predict
+    mse = np.mean((y_predict - y_hd) ** 2)
+    print("Mean squared error: %f" % mse)
+        
+def ridge_test(x_tt, y_tt, x_hd, y_hd, lam):
     #normalize x, center y
     x_tt_center = x_tt - np.mean(x_tt, axis=0)
-    y_tt_center = y_tt - np.mean(y_tt)
+    #y_tt_center = y_tt - np.mean(y_tt)
+    y_tt_center = y_tt
 
-    for lam in [10 ** j for j in range(-5, 6)]:
-    #for lam in [1]:
-        print "lambda is %f" % lam
-        #clf = linear_model.Ridge(alpha=alpha, fit_intercept=False)
-        clf = linear_model.Ridge(alpha=lam, fit_intercept=False)
+    print "lambda is %f" % lam
+    #clf = linear_model.Ridge(alpha=alpha, fit_intercept=False)
+    clf = linear_model.Ridge(alpha=lam, fit_intercept=False)
+
+    clf.fit(x_tt_center[:,1:], y_tt_center)
+    print('Coefficients: \n', clf.coef_)
+    print clf.intercept_
     
-        clf.fit(x_tt_center[:,1:], y_tt_center)
-        print('Coefficients: \n', clf.coef_)
-        print clf.intercept_
-        
-        #print np.mean(x_tt[:,1:], axis=0)
-        #print clf.coef_.T
-        w0 = np.mean(y_tt) - np.dot(np.mean(x_tt[:,1:], axis=0), clf.coef_.T)
-        print w0
+    #print np.mean(x_tt[:,1:], axis=0)
+    #print clf.coef_.T
+    w0 = np.mean(y_tt) - np.dot(np.mean(x_tt[:,1:], axis=0), clf.coef_.T)
+    print w0
+    #print np.mean(y_tt)
 
-        x_hd_center = x_hd - np.mean(x_tt, axis=0)
-        y_predict = clf.predict(x_hd_center[:,1:]) + np.mean(y_tt)
-        #print y_predict
-        mse = np.mean((y_predict - y_hd) ** 2)
-        print("Mean squared error: %f" % mse)
+    x_hd_center = x_hd - np.mean(x_tt, axis=0)
+    y_predict = clf.predict(x_hd_center[:,1:]) + np.mean(y_tt)
+    #print y_predict
+    mse = np.mean((y_predict - y_hd) ** 2)
+    print("Mean squared error: %f" % mse)
+    return mse
         
         
                 
-def test():
+def main():
     data = scipy.io.loadmat('linear_regression.mat')
-    degree = 2
+    degree, fold = 2, 10
     x_train, y_train = data['X_trn'], data['Y_trn']
     x_test, y_test = data['X_tst'], data['Y_tst'] 
     x_train = poly_basis_trans(x_train, degree)
     x_test = poly_basis_trans(x_test, degree)
     
-    # 10 fold, the 5th fold
-    idx_start = 5*8
-    idx_end = 6*8
-    x_hd = x_train[idx_start:idx_end,:]
-    y_hd = y_train[idx_start:idx_end,:]
-    x_tt = np.concatenate((x_train[0:idx_start,:], x_train[idx_end:,:]), axis=0)
-    y_tt = np.concatenate((y_train[0:idx_start,:], y_train[idx_end:,:]), axis=0)
-    print x_hd
-    print y_hd
-    #ridge(x_tt, y_tt, x_hd, y_hd)
-    #ridge_normalize(x_tt, y_tt, x_hd, y_hd)
-    ridge_test(x_tt, y_tt, x_hd, y_hd)
+    lam_errs = []
+    lam_ws = []
+    lam_range = [10 ** j for j in range(-5, 6)]
+    lam_range = [1.0]
+    for lam in lam_range:
+        fold_errs = []
+        for k in range(fold):
+            print 'fold: %d' % k
+            hd_idx = np.arange(k, len(x_train), fold)
+            x_hd, y_hd = x_train[hd_idx], y_train[hd_idx]
+            x_tt, y_tt = np.delete(x_train, hd_idx, axis=0), np.delete(y_train, hd_idx, axis=0)
+            #print x_hd
+            #print y_hd
+            #ridge(x_tt, y_tt, x_hd, y_hd,lam)
+            #ridge_normalize(x_tt, y_tt, x_hd, y_hd, lam)
+            mse = ridge_test(x_tt, y_tt, x_hd, y_hd, lam)
+            fold_errs.append(mse)
+        lam_errs.append(np.mean(fold_errs))
+    pprint(lam_errs)
+    idx = np.argmin(lam_errs)
+    print idx
+    best_lam = lam_range[idx]
+    print best_lam
+            
     
 
 
@@ -127,4 +137,4 @@ def test():
 
 
 if __name__ == '__main__':
-    test()
+    main()

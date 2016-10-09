@@ -56,9 +56,18 @@ if __name__ == '__main__':
                   [11]])
     X3 = np.array([[1, 2], 
                   [3, 4]])
-    X4 = np.array([1,2,3,4,5])
+    X4 = np.array([1,2])
+    X5 = np.array([[1,2]])
     
-    print np.dot(X3, X2)
+    #print np.dot(X3, X2)
+    print X3.shape
+    print X4.shape
+    print X5.shape
+    
+
+    print np.append(X3, X5, axis=0)
+    print np.concatenate((X3, X5), axis=0)
+    print np.insert(X3, 0, X5, axis=0)
 #     #X = np.concatenate((X1, X2), axis=1)
 #     p = np.random.permutation(len(X1))
 #     print p

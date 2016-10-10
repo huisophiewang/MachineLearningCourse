@@ -28,6 +28,22 @@ def get_ridge_w(x, y, lam):
     all_w = np.concatenate((w0, w), axis=0)
     return all_w
 
+def grad_descent(x_train, y_train, degree, alpha=0.1):
+    x_train = poly_basis_trans(x_train, degree)
+    N = len(x_train)
+    w = np.zeros((x_train.shape[1], 1))
+    prev_mse = float("inf")
+    while True:
+        err = np.dot(x_train, w) - y_train
+        w -= alpha*np.dot(x_train.T, err)/N
+        mse = np.mean((np.dot(x_train, w)-y_train) ** 2)
+        #print mse
+        if np.abs(mse - prev_mse) < 0.00001:
+            break
+        prev_mse = mse
+    #print w.T
+    return w        
+    
 def linear_reg(x_train, y_train, x_test, y_test, degree):
     x_train = poly_basis_trans(x_train, degree)
     pseudo_inv = np.linalg.inv(np.dot(np.transpose(x_train), x_train))
@@ -82,15 +98,11 @@ if __name__ == '__main__':
     for degree in [2, 5, 10, 20]:          
         print "--------- degree=%d ---------" % degree
         linear_reg(x_train, y_train, x_test, y_test, degree)
-    
+     
     print "=========================== Ridge Regression ============================="  
     for degree in [2, 5, 10, 20]:
         for fold in [2, 5, 10, len(x_train)]:   
             print "--------- degree=%d fold=%d ---------" % (degree, fold)
             ridge_reg(x_train, y_train, x_test, y_test, degree, fold)
-
-    
-    
-
-
+            
     

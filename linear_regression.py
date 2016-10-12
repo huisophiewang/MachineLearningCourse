@@ -14,19 +14,36 @@ def poly_basis_trans(X, degree):
             X_trans[:,j*(degree+1)+d] = np.power(X[:,j], d)
     return X_trans
 
+def normalize_col(x):
+    normalized = np.zeros(x.shape)
+    for j in range(x.shape[1]):
+        cmean = np.mean(x[:,j])
+        cstd = np.std(x[:,j])
+        normalized[:,j] = (x[:,j]-cmean)/cstd
+    return normalized
 
 def get_ridge_w(x, y, lam):
-    # center x, don't need to center y though
-    # w is the same whether y is centered or not, see proof hw1 q6
-    # w0 is not the same as in q6, since here we want w0 for the original x
-    x_center = x[:,1:] - np.mean(x[:,1:], axis=0)
-    pseudo_inv = np.linalg.inv(np.dot(np.transpose(x_center), x_center) + lam * np.identity(x_center.shape[1]))
-    pseduo_inv = np.dot(pseudo_inv, np.transpose(x_center))
+    # normalize x is better that just center x, it's easier to adjust lamba when features are in the same scale
+    # don't need to center y, w is the same whether y is centered or not, see proof hw1 q6
+    #x_center = x[:,1:] - np.mean(x[:,1:], axis=0)
+    x_norm = normalize_col(x[:,1:])
+    pseudo_inv = np.linalg.inv(np.dot(np.transpose(x_norm), x_norm) + lam * np.identity(x_norm.shape[1]))
+    pseduo_inv = np.dot(pseudo_inv, np.transpose(x_norm))
     w = np.dot(pseduo_inv, y)
-    w0 = np.mean(y) - np.dot(np.mean(x[:,1:], axis=0), w)
-    w0 = np.reshape(w0, (1,1))
+    w0 = np.reshape(np.mean(y), (1,1))
     all_w = np.concatenate((w0, w), axis=0)
     return all_w
+
+def get_ridge_prediction(x_train, x_test, all_w):
+    means = np.zeros(x_train.shape[1])
+    stds = np.zeros(x_train.shape[1])
+    for j in range(x_train.shape[1]):
+        means[j] = np.mean(x_train[:,j])
+        stds[j] = np.std(x_train[:,j])
+    x_norm = np.ones(x_test.shape)
+    for j in range(1, x_test.shape[1]):
+        x_norm[:,j] = (x_test[:,j]-means[j])/stds[j]
+    return np.dot(x_norm, all_w)
 
 def grad_descent(x_train, y_train, degree, alpha=0.1):
     x_train = poly_basis_trans(x_train, degree)
@@ -72,7 +89,8 @@ def ridge_reg(x_train, y_train, x_test, y_test, degree, fold):
             x_tt, y_tt = np.delete(x_train, hd_idx, axis=0), np.delete(y_train, hd_idx, axis=0)
             all_w = get_ridge_w(x_tt, y_tt, lam)
             #print all_w
-            hd_err = np.mean((np.dot(x_hd, all_w) - y_hd) ** 2)
+            y_hd_predict = get_ridge_prediction(x_tt, x_hd, all_w)
+            hd_err = np.mean((y_hd_predict - y_hd) ** 2)
             #print hd_err
             fold_hd_err.append(hd_err)
         avg_hd_err = np.mean(fold_hd_err)
@@ -83,9 +101,11 @@ def ridge_reg(x_train, y_train, x_test, y_test, degree, fold):
     print "best lambda: %f" % lam_hat
     w_hat = get_ridge_w(x_train, y_train, lam_hat)
     print "coefficients w: %s" % w_hat.T
-    train_mse = np.mean((np.dot(x_train, w_hat) - y_train) ** 2)
+    y_train_predict = get_ridge_prediction(x_train, x_train, w_hat)
+    train_mse = np.mean((y_train_predict - y_train) ** 2)
     print "training mse: %f" % train_mse
-    test_mse = np.mean((np.dot(x_test, w_hat) - y_test) ** 2)
+    y_test_predict = get_ridge_prediction(x_train, x_test, w_hat)
+    test_mse = np.mean((y_test_predict - y_test) ** 2)
     print "test mse: %f" % test_mse
 
 
@@ -105,4 +125,4 @@ if __name__ == '__main__':
             print "--------- degree=%d fold=%d ---------" % (degree, fold)
             ridge_reg(x_train, y_train, x_test, y_test, degree, fold)
             
-    
+

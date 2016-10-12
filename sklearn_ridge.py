@@ -49,23 +49,27 @@ def ridge(x_tt, y_tt, x_hd, y_hd, lam):
 def ridge_normalize(x_tt, y_tt, x_hd, y_hd, lam):
     #normalize x, center y
     x_tt_norm, means, stds = normalize_col(x_tt[:,1:])
-    y_tt_center = y_tt - np.mean(y_tt)
 
     #clf = linear_model.Ridge(alpha=alpha, fit_intercept=False)
     clf = linear_model.Ridge(alpha=lam, fit_intercept=False)
 
-    clf.fit(x_tt_norm, y_tt_center)
+    clf.fit(x_tt_norm, y_tt)
     print('Coefficients: \n', clf.coef_)
-    print clf.intercept_
+#     print clf.coef_.T[0]/stds[0]
+#     print clf.coef_.T[1]/stds[1]
+#     print clf.intercept_
+    
     x_hd_norm = np.zeros(x_hd.shape)
     x_hd_norm[:,1]=(x_hd[:,1]-means[0])/stds[0]
     x_hd_norm[:,2]=(x_hd[:,2]-means[1])/stds[1]
     #print x_hd_norm
 
-    y_predict = clf.predict(x_hd_norm[:,1:]) + np.mean(y_tt)
-    #print y_predict
+    y_predict = np.dot(x_hd_norm[:,1:], clf.coef_.T) + np.mean(y_tt)
+    #y_predict = clf.predict(x_hd_norm[:,1:]) + np.mean(y_tt)
+
     mse = np.mean((y_predict - y_hd) ** 2)
     print("Mean squared error: %f" % mse)
+    return mse
         
 def ridge_test(x_tt, y_tt, x_hd, y_hd, lam):
     #normalize x, center y
@@ -73,7 +77,6 @@ def ridge_test(x_tt, y_tt, x_hd, y_hd, lam):
     #y_tt_center = y_tt - np.mean(y_tt)
     y_tt_center = y_tt
 
-    print "lambda is %f" % lam
     #clf = linear_model.Ridge(alpha=alpha, fit_intercept=False)
     clf = linear_model.Ridge(alpha=lam, fit_intercept=False)
 
@@ -98,7 +101,7 @@ def ridge_test(x_tt, y_tt, x_hd, y_hd, lam):
                 
 def main():
     data = scipy.io.loadmat('linear_regression.mat')
-    degree, fold = 2, 10
+    degree, fold = 2, 5
     x_train, y_train = data['X_trn'], data['Y_trn']
     x_test, y_test = data['X_tst'], data['Y_tst'] 
     x_train = poly_basis_trans(x_train, degree)
@@ -107,8 +110,9 @@ def main():
     lam_errs = []
     lam_ws = []
     lam_range = [10 ** j for j in range(-5, 6)]
-    lam_range = [1.0]
+    #lam_range = [1.0]
     for lam in lam_range:
+        print "lambda is %f" % lam
         fold_errs = []
         for k in range(fold):
             print 'fold: %d' % k
@@ -118,8 +122,9 @@ def main():
             #print x_hd
             #print y_hd
             #ridge(x_tt, y_tt, x_hd, y_hd,lam)
-            #ridge_normalize(x_tt, y_tt, x_hd, y_hd, lam)
-            mse = ridge_test(x_tt, y_tt, x_hd, y_hd, lam)
+            mse = ridge_normalize(x_tt, y_tt, x_hd, y_hd, lam)
+            #mse = ridge_test(x_tt, y_tt, x_hd, y_hd, lam)
+
             fold_errs.append(mse)
         lam_errs.append(np.mean(fold_errs))
     pprint(lam_errs)

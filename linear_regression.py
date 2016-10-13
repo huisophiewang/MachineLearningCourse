@@ -79,12 +79,10 @@ def ridge_reg(x_train, y_train, x_test, y_test, degree, fold):
     x_test = poly_basis_trans(x_test, degree)
     lam_range = [10 ** j for j in range(-5, 6)]
     #lam_range = [1.0]
-    lam_hd_err = []
-    lam_tt_err = []
+    lam_hd_mse, lam_tt_mse = [], []
     for lam in lam_range:
         #print 'lambda: %f' % lam
-        fold_hd_err = []
-        fold_tt_err = []
+        fold_hd_mse, fold_tt_mse = [], []
         for k in range(fold):
             #print 'fold: %d' % k
             hd_idx = np.arange(k, len(x_train), fold)
@@ -92,18 +90,17 @@ def ridge_reg(x_train, y_train, x_test, y_test, degree, fold):
             x_tt, y_tt = np.delete(x_train, hd_idx, axis=0), np.delete(y_train, hd_idx, axis=0)
             all_w = get_ridge_w(x_tt, y_tt, lam)
             #print all_w
-            y_tt_predict = get_ridge_prediction(x_tt, x_tt, all_w)
-            tt_err = np.mean((y_tt_predict - y_tt) ** 2)
-            fold_tt_err.append(tt_err)
             y_hd_predict = get_ridge_prediction(x_tt, x_hd, all_w)
-            hd_err = np.mean((y_hd_predict - y_hd) ** 2)
-            #print hd_err
-            fold_hd_err.append(hd_err)
-        lam_hd_err.append(np.mean(fold_hd_err))
-        lam_tt_err.append(np.mean(fold_tt_err))
-    #pprint(lam_hd_err)
-    #plot_mse(lam_range, lam_tt_err, lam_hd_err, degree, fold)
-    idx = np.argmin(lam_hd_err)
+            hd_mse = np.mean((y_hd_predict - y_hd) ** 2)
+            fold_hd_mse.append(hd_mse)
+            y_tt_predict = get_ridge_prediction(x_tt, x_tt, all_w)
+            tt_mse = np.mean((y_tt_predict - y_tt) ** 2)
+            fold_tt_mse.append(tt_mse)
+        lam_hd_mse.append(np.mean(fold_hd_mse))
+        lam_tt_mse.append(np.mean(fold_tt_mse))
+    #pprint(lam_hd_mse)
+    #plot_mse(lam_range, lam_hd_mse, lam_tt_mse, degree, fold)
+    idx = np.argmin(lam_hd_mse)
     lam_hat = lam_range[idx]
     print "best lambda: %f" % lam_hat
     w_hat = get_ridge_w(x_train, y_train, lam_hat)
@@ -116,13 +113,13 @@ def ridge_reg(x_train, y_train, x_test, y_test, degree, fold):
     print "test mse: %f" % test_mse
     
 
-def plot_mse(lam_range, tt_mse, hd_mse, degree, fold):
-    plt.title('holdout_mse vs lambda, degree=%d fold=%d' % (degree, fold))
+def plot_mse(lam_range, hd_mse, tt_mse, degree, fold):
+    plt.title('holdout_mse vs lambda, degree=%d, fold=%d' % (degree, fold))
     plt.xlabel('lambda')
     plt.ylabel('holdout_mse')
-    plt.plot(np.log10(lam_range), hd_mse, color = 'red', label="holdout set")
-    plt.plot(np.log10(lam_range), tt_mse, color = 'blue', label="train set")
-    plt.show(block=False)
+    plt.plot(np.log10(lam_range), hd_mse, color = 'red')
+    plt.plot(np.log10(lam_range), tt_mse, color = 'blue')
+    plt.show()
     
 if __name__ == '__main__':
     data = scipy.io.loadmat('linear_regression.mat')
@@ -139,7 +136,6 @@ if __name__ == '__main__':
         for fold in [2, 5, 10, len(x_train)]:   
             print "--------- degree=%d fold=%d ---------" % (degree, fold)
             ridge_reg(x_train, y_train, x_test, y_test, degree, fold)
-
 
             
 

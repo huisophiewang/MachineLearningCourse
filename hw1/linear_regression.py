@@ -2,6 +2,7 @@ import scipy.io
 import numpy as np
 from pprint import pprint
 import matplotlib.pyplot as plt
+import os
 
 # transform matrix X using polynomial basis [x, x^2, ...]
 # each column Xj is transformed to several columns [Xj, Xj^2, ...]
@@ -122,15 +123,16 @@ def plot_mse(lam_range, hd_mse, tt_mse, degree, fold):
     plt.show()
     
 if __name__ == '__main__':
-    data = scipy.io.loadmat('linear_regression.mat')
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    data = scipy.io.loadmat(os.path.join(cur_dir, 'linear_regression.mat'))
     x_train, y_train = data['X_trn'], data['Y_trn']
     x_test, y_test = data['X_tst'], data['Y_tst']
-    
+     
     print "=========================== Linear Regression ============================="  
     for degree in [2, 5, 10, 20]:          
         print "--------- degree=%d ---------" % degree
         linear_reg(x_train, y_train, x_test, y_test, degree)
-      
+       
     print "=========================== Ridge Regression ============================="  
     for degree in [2, 5, 10, 20]:
         for fold in [2, 5, 10, len(x_train)]:   

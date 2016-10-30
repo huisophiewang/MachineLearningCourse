@@ -1,5 +1,6 @@
 import scipy.io
 import numpy as np
+import os
 
 def get_xi_class_prob(xi, theta, num_class):
     p = np.zeros((num_class, 1)) # probability of P(y=j|xi)
@@ -59,7 +60,8 @@ def softmax_cls(x_train, y_train, x_test, y_test):
     print "test accuracy: %f" % test_acc
 
 if __name__ == '__main__':
-    data = scipy.io.loadmat('logistic_regression.mat')
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    data = scipy.io.loadmat(os.path.join(cur_dir, 'logistic_regression.mat'))
     x_train, y_train = data['X_trn'], data['Y_trn']
     x_test, y_test = data['X_tst'], data['Y_tst']
     

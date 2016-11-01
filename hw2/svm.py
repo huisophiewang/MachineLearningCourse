@@ -18,7 +18,8 @@ def svo(X, Y):
     
     
 if __name__ == '__main__':
-    data = scipy.io.loadmat('data.mat')
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    data = scipy.io.loadmat(os.path.join(cur_dir, 'data.mat'))
     x_train, y_train = data['X_trn'], data['Y_trn']
     x_test, y_test = data['X_tst'], data['Y_tst']
     #print y_test[:14]

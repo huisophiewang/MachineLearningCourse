@@ -62,8 +62,9 @@ if __name__ == '__main__':
                   [1]])
     
     print X2*X6
-    print np.log(2.7)
-    print range(1, 3)
+    print np.sum(X6)
+    print np.zeros((3, 1))
+    print X6==1
     
 #     #print np.dot(X3, X2)
 #     print X3.shape

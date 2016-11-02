@@ -56,16 +56,17 @@ if __name__ == '__main__':
                   [11]])
     X3 = np.array([[1, 2], 
                   [3, 4]])
-    X4 = np.array([1,2])
+    X4 = np.array([1])
     X5 = np.array([[1,2]])
     X6 = np.array([[2], 
                   [1]])
     
-    print X2*X6
-    print np.sum(X6)
-    print np.zeros((3, 1))
-    print X6==1
-    
+#     print X2*X6
+#     print np.sum(X6)
+#     print np.zeros((3, 1))
+    print sum(X6)
+
+    print X4.reshape()
 #     #print np.dot(X3, X2)
 #     print X3.shape
 #     print X4.shape

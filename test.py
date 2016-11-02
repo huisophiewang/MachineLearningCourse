@@ -64,9 +64,7 @@ if __name__ == '__main__':
 #     print X2*X6
 #     print np.sum(X6)
 #     print np.zeros((3, 1))
-    print sum(X6)
 
-    print X4.reshape()
 #     #print np.dot(X3, X2)
 #     print X3.shape
 #     print X4.shape
@@ -76,4 +74,9 @@ if __name__ == '__main__':
 #     print np.append(X3, X5, axis=0)
 #     print np.concatenate((X3, X5), axis=0)
 #     print np.insert(X3, 0, X5, axis=0)
+    np.random.seed(0)
+    #print np.random.permutation(5)
+    print np.linspace(-2, 2)
+    
+
 

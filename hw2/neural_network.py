@@ -3,12 +3,17 @@ import scipy.io
 import numpy as np
 
 def f(x):
-    return 1.0/(1+np.exp(-x))
+    return 1.0/(1.0+np.exp(-x))
 
 def f_prime(x):
-    return f(x)*(1-f(x))
+    return f(x)*(1.0-f(x))
 
-def cost(x, y, w1, w2, b1, b2, lam=1):
+def softmax(x):
+    p = np.exp(x)
+    p /= sum(p)  # normalize
+    return p
+
+def cost_func(x, y, w1, w2, b1, b2, lam=1):
     N = len(x)
     Jwb = 0
     for i in range(N):
@@ -17,26 +22,44 @@ def cost(x, y, w1, w2, b1, b2, lam=1):
         a2 = f(z2)
         z3 = np.dot(w2, a2)+b2
         hi = f(z3)    
-        Jwb += (hi-y[i])*(hi-y[i])/2
+        Jwb += np.dot((hi-y[i]), (hi-y[i]))/2.0
     Jwb = Jwb/N + lam/2.0*(np.sum(np.square(w1))+np.sum(np.square(w2)))
+    #Jwb = Jwb/N 
     print Jwb
+    return Jwb
     
-def toy(x, y, alpha=1, lam=1):
+    
+def convert_y(y):
+    N = len(y)
+    k = len(set(y.T[0]))
+    result = np.zeros((N, k))
+    for i in range(N):
+        label = y[i][0]
+        result[i][label] = 1
+    return result
+    
+def neural_net(x, y, s2=5, alpha=0.1, lam=1):
+    
+    N, s1 = x.shape
+    s3 = y.shape[1]
 
-    N = len(X)
+    ### initialize
     np.random.seed(0)
+    w1 = np.random.normal(0, 0.01, (s2,s1))
+    w2 = np.random.normal(0, 0.01, (s3,s2))
+    b1 = np.zeros(s2)
+    b2 = np.zeros(s3)
+    prev_cost = float("inf")
     
-    ### initialization
-    w1 = np.random.normal(0, 0.01, (3,4))
-    w2 = np.random.normal(0, 0.01, (2,3))
-    b1 = np.zeros(3)
-    b2 = np.zeros(2)
-    
-    for iter in range(10):
-        delta_w1 = np.zeros((3,4))
-        delta_w2 = np.zeros((2,3))
-        delta_b1 = np.zeros(3)
-        delta_b2 = np.zeros(2)
+    for iter in range(100):
+        print '=========== iter %d ===========' % iter
+#         print "previous w:"
+#         print w1
+#         print w2
+        delta_w1 = np.zeros((s2,s1))
+        delta_w2 = np.zeros((s3,s2))
+        delta_b1 = np.zeros(s2)
+        delta_b2 = np.zeros(s3)
         
         for i in range(N):
             # forward
@@ -44,10 +67,10 @@ def toy(x, y, alpha=1, lam=1):
             z2 = np.dot(w1, a1)+b1
             a2 = f(z2)
             z3 = np.dot(w2, a2)+b2
-            a3 = f(z3)
+            a3 = softmax(z3)
+            print a3
 
             # backward
-            print '----------'
             error3 = (a3 - y[i])*f_prime(z3)
             delta_w2 += np.dot(np.array([error3]).T, [a2])
             delta_b2 += error3
@@ -56,40 +79,94 @@ def toy(x, y, alpha=1, lam=1):
             #error20 = error3[0]*w2[0,0]*f_prime(z2)[0] + error3[1]*w2[1,0]*f_prime(z2)[0]
             #error21 = error3[0]*w2[0,1]*f_prime(z2)[1] + error3[1]*w2[1,1]*f_prime(z2)[1]
             #error22 = error3[0]*w2[0,2]*f_prime(z2)[2] + error3[1]*w2[1,2]*f_prime(z2)[2]
-    
+            # in matrix form:
             error2 = (error3*w2.T).sum(axis=1)*f_prime(z2)
             delta_w1 += np.dot(np.array([error2]).T, [a1])
             delta_b1 += error2
+ 
+#         print 'gradient of w:'
+#         print delta_w1/N + lam*w1
+#         print delta_w2/N + lam*w2          
             
         w1 = w1 - alpha*(delta_w1/N + lam*w1)
         w2 = w2 - alpha*(delta_w2/N + lam*w2)
         b1 = b1 - alpha*(delta_b1/N)
         b2 = b2 - alpha*(delta_b2/N)
         
+        print 'w:'
         print w1
         print w2
+        print 'b:'
+        print b1
+        print b2
+                
+        #cost = np.log(cost_func(x, y, w1, w2, b1, b2, lam))
+        cost = cost_func(x, y, w1, w2, b1, b2, lam)
+        print "cost: %f" % cost
+        if np.abs(cost - prev_cost) < 10**(-6):
+            break
+        prev_cost = cost
+    return w1, w2, b1, b2
+
+def classify(x, y, w1, w2, b1, b2):
+    N= len(x)
+    for i in range(N):
+        a1 = x[i].T
+        z2 = np.dot(w1, a1)+b1
+        a2 = f(z2)
+        z3 = np.dot(w2, a2)+b2
+        a3 = f(z3)
+        print a3
+        
 
 
-        
-        
+def check_grad(x, y):
+    w1 = np.array([[ 0.01764052,  0.00400157,  0.00978738],
+                 [ 0.02240893,  0.01867558, -0.00977278],
+                 [ 0.00950088, -0.00151357, -0.00103219],
+                 [ 0.00410599,  0.00144044,  0.01454274],
+                 [ 0.00761038,  0.00121675,  0.00443863]])
+    w2 = np.array([[ 0.00333674,  0.01494079, -0.00205158,  0.00313068, -0.00854096],
+                 [-0.0255299,   0.00653619,  0.00864436, -0.00742165,  0.02269755],
+                 [-0.01454366,  0.00045759, -0.00187184,  0.01532779,  0.01469359]])
+    b1 = np.zeros(5)
+    b2 = np.zeros(3)
     
-#         # multiply how much we missed by the 
-#         # slope of the sigmoid at the values in l1
-#         l2_delta = l2_error * sigmoid(l1,True)
-#     
-#         # update weights
-#         w0 += np.dot(l1.T,l1_delta)
+    #c = cost_func(x, y, w1, w2, b1, b2)
+    
+    epsilon = 10**(-4)
+    w1[0][2] += epsilon
+    print w1
+    c1 = cost_func(x, y, w1, w2, b1, b2)
+    w1[0][2] -= epsilon*2
+    print w1
+    c2 = cost_func(x, y, w1, w2, b1, b2)
+    
+    grad_approximate = (c1 - c2) / (2.0*epsilon)
+    #print c1 - c2
+    print grad_approximate
+    
     
 
 
 if __name__ == '__main__':
-#     cur_dir = os.path.dirname(os.path.realpath(__file__))
-#     data = scipy.io.loadmat(os.path.join(cur_dir, 'data.mat'))
-#     x_train, y_train = data['X_trn'], data['Y_trn']
-#     x_test, y_test = data['X_tst'], data['Y_tst']
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    data = scipy.io.loadmat(os.path.join(cur_dir, 'data.mat'))
+    x_train, y_train = data['X_trn'], data['Y_trn']
+    x_test, y_test = data['X_tst'], data['Y_tst']
     #print x_test
-    X = np.array([[0,0,1,1],
-                  [0,1,0,1]])           
-    Y = np.array([[0,1],
-                  [1,0]])
-    toy(X, Y)
+#     X = np.array([[0,0,1,1],
+#                   [0,1,0,1]])           
+#     Y = np.array([[0,1],
+#                   [1,0]])
+#     toy(x_test, y_test)
+
+    y_test = convert_y(y_test)
+    
+    w1, w2, b1, b2 = neural_net(x_test, y_test)
+    #classify(x_test, y_test, w1, w2, b1, b2)
+    #print '=============================='
+    #check_grad(x_test, y_test)
+
+    
+    

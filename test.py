@@ -54,13 +54,18 @@ if __name__ == '__main__':
                   [7,1,]])
     X2 = np.array([[1], 
                   [11]])
-    X3 = np.array([[1, 2], 
-                  [3, 4]])
-    X4 = np.array([1])
+    X3 = np.array([[1,2], 
+                   [3,4],
+                   [5,6]])
+    X4 = np.array([1,2])
     X5 = np.array([[1,2]])
     X6 = np.array([[2], 
                   [1]])
     
+    #print X4*X3
+    print np.sum(X3)
+    print np.sum(X1)
+    print np.square(X3)
 #     print X2*X6
 #     print np.sum(X6)
 #     print np.zeros((3, 1))
@@ -76,7 +81,11 @@ if __name__ == '__main__':
 #     print np.insert(X3, 0, X5, axis=0)
     np.random.seed(0)
     #print np.random.permutation(5)
-    print np.linspace(-2, 2)
+    #print np.linspace(-2, 2)
+    
+
+    
+    
     
 
 

@@ -49,23 +49,24 @@ def standalize_col(arr):
     return arr
 
 if __name__ == '__main__':
-    X1 = np.array([[1.0,2.0,], 
-                  [4,6,],
-                  [7,1,]])
+    X1 = np.array([[1,1,2,2], 
+                   [3,3,4,4]])
     X2 = np.array([[1], 
                   [11]])
     X3 = np.array([[1,2], 
                    [3,4],
                    [5,6]])
     X4 = np.array([1,2])
-    X5 = np.array([[1,2]])
+    X5 = np.array([[1,2,2]])
     X6 = np.array([[2], 
                   [1]])
     
     #print X4*X3
-    print np.sum(X3)
-    print np.sum(X1)
-    print np.square(X3)
+    print X5[0].T
+    print X1.shape
+    print X5[0].T.shape
+    print np.dot(X1, X5[0])
+#     print np.square(X3)
 #     print X2*X6
 #     print np.sum(X6)
 #     print np.zeros((3, 1))

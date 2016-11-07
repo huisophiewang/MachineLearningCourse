@@ -38,41 +38,58 @@ def convert_y(y):
         result[i][label] = 1
     return result
     
-def neural_net(x, y, s2=5, alpha=0.1, lam=1):
+def neural_net(x, y, s2=2, alpha=1.0, lam=0.001):
     
     N, s1 = x.shape
     s3 = y.shape[1]
 
     ### initialize
     np.random.seed(0)
-    w1 = np.random.normal(0, 0.01, (s2,s1))
-    w2 = np.random.normal(0, 0.01, (s3,s2))
+#     w1 = np.random.normal(0, 0.01, (s2,s1))
+#     w2 = np.random.normal(0, 0.01, (s3,s2))
     b1 = np.zeros(s2)
     b2 = np.zeros(s3)
     prev_cost = float("inf")
+    w1 = np.array([[0.01, 0.01, 0.01, 0.01],
+                   [0.01, 0.01, 0.01, 0.01]])
+    w2 = np.array([[0.01, 0.01]])
+
+
+#     w1 = np.array([[0.2, 0.4, -0.5],
+#                    [-0.3, 0.1, 0.2]])
+#     w2 = np.array([[-0.3, -0.2]])
+#     b1 = np.array([-0.4, 0.2])
+#     b2 = np.array([0.1])
     
-    for iter in range(100):
+    for iter in range(2000):
         print '=========== iter %d ===========' % iter
-#         print "previous w:"
-#         print w1
-#         print w2
+
         delta_w1 = np.zeros((s2,s1))
         delta_w2 = np.zeros((s3,s2))
         delta_b1 = np.zeros(s2)
         delta_b2 = np.zeros(s3)
         
         for i in range(N):
+            print '------'
             # forward
-            a1 = x[i].T
+
+            a1 = x[i]
             z2 = np.dot(w1, a1)+b1
             a2 = f(z2)
             z3 = np.dot(w2, a2)+b2
+            #print z3
+            #a3 = f(z3)
             a3 = softmax(z3)
+            print "predict:"
             print a3
+            
 
             # backward
             error3 = (a3 - y[i])*f_prime(z3)
+            print "errors:"
+            print error3
             delta_w2 += np.dot(np.array([error3]).T, [a2])
+            #print delta_w2
             delta_b2 += error3
     
             ### e.g. s2=3, s3=2
@@ -81,15 +98,18 @@ def neural_net(x, y, s2=5, alpha=0.1, lam=1):
             #error22 = error3[0]*w2[0,2]*f_prime(z2)[2] + error3[1]*w2[1,2]*f_prime(z2)[2]
             # in matrix form:
             error2 = (error3*w2.T).sum(axis=1)*f_prime(z2)
+            print error2
             delta_w1 += np.dot(np.array([error2]).T, [a1])
             delta_b1 += error2
  
 #         print 'gradient of w:'
-#         print delta_w1/N + lam*w1
-#         print delta_w2/N + lam*w2          
+#         print delta_w1/N 
+#         print delta_w2/N           
             
         w1 = w1 - alpha*(delta_w1/N + lam*w1)
         w2 = w2 - alpha*(delta_w2/N + lam*w2)
+#         w1 = w1 - alpha*(delta_w1/N)
+#         w2 = w2 - alpha*(delta_w2/N)
         b1 = b1 - alpha*(delta_b1/N)
         b2 = b2 - alpha*(delta_b2/N)
         
@@ -101,11 +121,11 @@ def neural_net(x, y, s2=5, alpha=0.1, lam=1):
         print b2
                 
         #cost = np.log(cost_func(x, y, w1, w2, b1, b2, lam))
-        cost = cost_func(x, y, w1, w2, b1, b2, lam)
-        print "cost: %f" % cost
-        if np.abs(cost - prev_cost) < 10**(-6):
-            break
-        prev_cost = cost
+#         cost = cost_func(x, y, w1, w2, b1, b2, lam)
+#         print "cost: %f" % cost
+#         if np.abs(cost - prev_cost) < 10**(-6):
+#             break
+#         prev_cost = cost
     return w1, w2, b1, b2
 
 def classify(x, y, w1, w2, b1, b2):
@@ -163,10 +183,17 @@ if __name__ == '__main__':
 
     y_test = convert_y(y_test)
     
-    w1, w2, b1, b2 = neural_net(x_test, y_test)
+    #w1, w2, b1, b2 = neural_net(x_test, y_test)
     #classify(x_test, y_test, w1, w2, b1, b2)
     #print '=============================='
     #check_grad(x_test, y_test)
+    
+    x = np.identity(4)
+    y = np.identity(4)
+    #y = np.array([[0],[0],[1],[1]])
+#     x = np.array([[1,1,0]])
+#     y = np.array([[0.1]])
+    neural_net(x, y)
 
     
     

@@ -38,30 +38,24 @@ def convert_y(y):
         result[i][label] = 1
     return result
     
-def neural_net(x, y, s2=2, alpha=1.0, lam=0.001):
+def neural_net(x, y, s2=3, alpha=10.0, lam=0.001):
     
     N, s1 = x.shape
     s3 = y.shape[1]
 
     ### initialize
     np.random.seed(0)
-#     w1 = np.random.normal(0, 0.01, (s2,s1))
-#     w2 = np.random.normal(0, 0.01, (s3,s2))
+    w1 = np.random.normal(0, 0.01, (s2,s1))
+    w2 = np.random.normal(0, 0.01, (s3,s2))
     b1 = np.zeros(s2)
     b2 = np.zeros(s3)
     prev_cost = float("inf")
-    w1 = np.array([[0.01, 0.01, 0.01, 0.01],
-                   [0.01, 0.01, 0.01, 0.01]])
-    w2 = np.array([[0.01, 0.01]])
+#     w1 = np.array([[0.01, 0.01, 0.01, 0.01],
+#                    [0.01, 0.01, 0.01, 0.01]])
+#     w2 = np.array([[0.01, 0.01]])
 
-
-#     w1 = np.array([[0.2, 0.4, -0.5],
-#                    [-0.3, 0.1, 0.2]])
-#     w2 = np.array([[-0.3, -0.2]])
-#     b1 = np.array([-0.4, 0.2])
-#     b2 = np.array([0.1])
     
-    for iter in range(2000):
+    for iter in range(1000):
         print '=========== iter %d ===========' % iter
 
         delta_w1 = np.zeros((s2,s1))
@@ -72,7 +66,7 @@ def neural_net(x, y, s2=2, alpha=1.0, lam=0.001):
         for i in range(N):
             print '------'
             # forward
-
+            print x[i]
             a1 = x[i]
             z2 = np.dot(w1, a1)+b1
             a2 = f(z2)
@@ -102,9 +96,9 @@ def neural_net(x, y, s2=2, alpha=1.0, lam=0.001):
             delta_w1 += np.dot(np.array([error2]).T, [a1])
             delta_b1 += error2
  
-#         print 'gradient of w:'
-#         print delta_w1/N 
-#         print delta_w2/N           
+        print 'gradient of w:'
+        print delta_w1/N + lam*w1
+        print delta_w2/N + lam*w2         
             
         w1 = w1 - alpha*(delta_w1/N + lam*w1)
         w2 = w2 - alpha*(delta_w2/N + lam*w2)
@@ -175,11 +169,7 @@ if __name__ == '__main__':
     x_train, y_train = data['X_trn'], data['Y_trn']
     x_test, y_test = data['X_tst'], data['Y_tst']
     #print x_test
-#     X = np.array([[0,0,1,1],
-#                   [0,1,0,1]])           
-#     Y = np.array([[0,1],
-#                   [1,0]])
-#     toy(x_test, y_test)
+
 
     y_test = convert_y(y_test)
     
@@ -187,13 +177,13 @@ if __name__ == '__main__':
     #classify(x_test, y_test, w1, w2, b1, b2)
     #print '=============================='
     #check_grad(x_test, y_test)
-    
-    x = np.identity(4)
-    y = np.identity(4)
+   
+
+    #x = np.identity(8)
+    #y = np.identity(8)
     #y = np.array([[0],[0],[1],[1]])
-#     x = np.array([[1,1,0]])
-#     y = np.array([[0.1]])
-    neural_net(x, y)
+
+    neural_net(x_test, y_test)
 
     
     

@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
 def pca(X, d):
-    #print X
+    # change X back to NxD
+    X = X.T
     N, D = X.shape
     X_mean = np.mean(X, axis=0)
     #print X_mean
@@ -14,7 +15,7 @@ def pca(X, d):
         Z[:,i] = X[i] - X_mean
     #print Z
     Ux, Sx, Vx = np.linalg.svd(Z)
-    U = Ux[:,:2]
+    U = Ux[:,:d]
     #print U
     mu = X_mean
     Y = np.zeros((N, d))
@@ -43,6 +44,7 @@ def sklearn_pca(X, d):
 if __name__ == '__main__':
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     data = scipy.io.loadmat(os.path.join(cur_dir, 'data.mat'))
+    # input must be X (DxN)
     U, mu, Y = pca(data['X_Question1'], d=2)
     plot(Y)
 

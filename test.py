@@ -55,16 +55,25 @@ if __name__ == '__main__':
                   [11]])
     X3 = np.array([[1,2], 
                    [3,4]])
-    X4 = np.array([1,2])
-    X5 = np.array([[1,2,2]])
-    X6 = np.array([[2], 
-                  [1]])
+    X4 = np.array([1, 5, 6, 2])
+    X5 = np.array([[1,2],
+                   [4,3]])
+    X6 = np.array([[2,-2], 
+                  [-2,2]])
+    X7 = np.array([[1,-1], 
+                   [-1,1]])
+    X8 = np.array([[0.05,-0.05],
+                   [-0.05,0.05]])  
+    X9 = np.array([[2,-1,0],
+                   [-1,2,-1],
+                   [0,-1,2]])    
     
+    print np.linalg.eig(X8)
+    print np.all(np.linalg.eigvals(X9) > 0)
+
     #print X4*X3
-    v = [2,3]
-    print np.dot(X3, v)
-    print X3
-    print X3*v
+    #print np.diag(X4)
+    #print np.sum(X3, axis=1)
 
 #     print np.square(X3)
 #     print X2*X6
@@ -80,7 +89,7 @@ if __name__ == '__main__':
 #     print np.append(X3, X5, axis=0)
 #     print np.concatenate((X3, X5), axis=0)
 #     print np.insert(X3, 0, X5, axis=0)
-    np.random.seed(0)
+    #np.random.seed(0)
     #print np.random.permutation(5)
     #print np.linspace(-2, 2)
     
